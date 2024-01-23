@@ -23,4 +23,6 @@ go buid即可使用，请将自己的域名写入环境变量的SUBDOMAIN中
     }
 }
 ```
-调用getMail后对应的邮件会被pop掉，无需担心大量邮件堆积占满内存
+调用getMail后对应的邮件会被pop掉，无需担心大量邮件堆积占满内存<br>
+测试使用
+http://mail.nothinglikethis.asia:8090/
