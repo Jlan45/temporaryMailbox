@@ -1,9 +1,11 @@
 # 简易临时邮箱生成
 go buid即可使用，请将自己的域名写入环境变量的SUBDOMAIN中
 ```
-/getRandom
+/getAddress
 {
-    "address": "79lb91nk@xxx.com"
+    "address": "79lb91nk@xxx.com",
+    "domain": "@xxx.com",
+    "random": "79lb91nk"
 }
 /getMailList/79lb91nk
 {
