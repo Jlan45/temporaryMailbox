@@ -191,7 +191,7 @@ func startHTTPServer(domainList []string) {
 		if domain == "" && len(domainList) > 0 {
 			domain = domainList[0]
 		}
-		if !isAllowedDomain(domain) {
+		if domain == "" || !isAllowedDomain(domain) {
 			c.JSON(400, gin.H{
 				"error": "Invalid domain",
 			})

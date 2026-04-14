@@ -26,6 +26,9 @@ func handler(c *smtpsrv.Context) error {
 	UserMail := c.To().String()
 	UserMail = strings.Trim(UserMail, "<>")
 	st := strings.Split(UserMail, "@")
+	if len(st) != 2 {
+		return fmt.Errorf("Invalid email address")
+	}
 	s := st[0]
 	if !isAllowedDomain(st[1]) {
 		return fmt.Errorf("Invalid domain")
