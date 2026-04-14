@@ -55,23 +55,46 @@ git clone https://github.com/Jlan45/temporaryMailbox.git
 cd temporaryMailbox
 go build -o temporaryMailbox .
 
-# 设置域名并启动（将 mail.example.com 替换为你的实际域名）
+# 单域名模式（将 mail.example.com 替换为你的实际域名）
 SUBDOMAIN=mail.example.com ./temporaryMailbox
+
+# 多域名模式（逗号分隔，用户可在 Web UI 中自行选择域名）
+SUBDOMAINS=mail.example.com,mail2.example.com,inbox.example.org ./temporaryMailbox
 ```
+
+> **说明**：`SUBDOMAINS` 优先级高于 `SUBDOMAIN`。设置 `SUBDOMAINS` 后，`SUBDOMAIN` 将被忽略。
 
 程序启动后：
 - HTTP 服务监听 `:80`，提供 Web UI 和 REST 接口
 - SMTP 服务监听 `:25`，接收来自其他邮件服务器的投递
+- 如果配置了多个域名，用户可以在 Web 页面的下拉列表中选择想要使用的域名
 
 ---
 
 ## API 接口
 
+### 获取可用域名列表
+
+```
+GET /getDomains
+```
+
+**响应示例：**
+```json
+{
+    "domains": ["mail.example.com", "mail2.example.com"]
+}
+```
+
+---
+
 ### 获取随机邮件地址
 
 ```
-GET /getAddress
+GET /getAddress?domain=mail.example.com
 ```
+
+> `domain` 参数可选。如果未提供，默认使用第一个配置的域名。
 
 **响应示例：**
 ```json

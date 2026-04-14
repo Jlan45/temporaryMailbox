@@ -13,15 +13,23 @@ type mailContent struct {
 	content string
 }
 
+func isAllowedDomain(domain string) bool {
+	for _, d := range domains {
+		if d == domain {
+			return true
+		}
+	}
+	return false
+}
+
 func handler(c *smtpsrv.Context) error {
 	UserMail := c.To().String()
 	UserMail = strings.Trim(UserMail, "<>")
 	st := strings.Split(UserMail, "@")
 	s := st[0]
-	if st[1] != subDomain {
+	if !isAllowedDomain(st[1]) {
 		return fmt.Errorf("Invalid domain")
 	}
-	//msg, _ := mail.ReadMessage(c)
 	msg, _ := c.Parse()
 	content := mailContent{
 		from:    strings.Trim(c.From().String(), "<>"),
@@ -34,9 +42,14 @@ func handler(c *smtpsrv.Context) error {
 	mailBox[s] = append(mailBox[s], content)
 	return nil
 }
-func startSMTPServer(subDomain string) {
+
+func startSMTPServer(domainList []string) {
+	bannerDomain := "localhost"
+	if len(domainList) > 0 {
+		bannerDomain = domainList[0]
+	}
 	cfg := smtpsrv.ServerConfig{
-		BannerDomain:    subDomain,
+		BannerDomain:    bannerDomain,
 		ListenAddr:      ":25",
 		MaxMessageBytes: 5 * 1024,
 		Handler:         handler,

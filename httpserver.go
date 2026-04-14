@@ -47,6 +47,15 @@ var htmlIndex = `<!DOCTYPE html>
         button:hover {
             background-color: #45a049;
         }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
         #randomAddress {
             margin-top: 20px;
             padding: 10px;
@@ -66,6 +75,10 @@ var htmlIndex = `<!DOCTYPE html>
 </head>
 <body>
     <h1>随机邮箱生成器</h1>
+    <div>
+        <label for="domainSelect">选择域名: </label>
+        <select id="domainSelect"></select>
+    </div>
     <div class="buttons">
         <button id="getRandom" >获取随机邮件地址</button>
         <button id="getMailList" >获取邮件列表</button>
@@ -77,10 +90,29 @@ var htmlIndex = `<!DOCTYPE html>
     <script>
         let randomMailAddress = ''; // 保存随机邮件地址
 
+        // 页面加载时获取可用域名列表
+        fetch('/getDomains')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('domainSelect');
+                data.domains.forEach(domain => {
+                    const option = document.createElement('option');
+                    option.value = domain;
+                    option.textContent = domain;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
         // 获取随机邮件地址
         document.getElementById('getRandom').addEventListener('click', function() {
+            const domain = document.getElementById('domainSelect').value;
+            if (!domain) {
+                alert('请先选择一个域名！');
+                return;
+            }
             // 调用后端接口，这里假设使用 fetch
-            fetch('/getAddress')
+            fetch(` + "`/getAddress?domain=${encodeURIComponent(domain)}`" + `)
                 .then(response => response.json())
                 .then(data => {
                     randomMailAddress = data.random; // 保存随机邮件地址
@@ -143,18 +175,33 @@ func RandStringRunes(n int) string {
 	}
 	return string(b)
 }
-func startHTTPServer(Domain string) {
+func startHTTPServer(domainList []string) {
 	httpsrv := gin.New()
 	httpsrv.GET("/", func(c *gin.Context) {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.String(200, htmlIndex)
 	})
+	httpsrv.GET("/getDomains", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"domains": domainList,
+		})
+	})
 	httpsrv.GET("/getAddress", func(c *gin.Context) {
+		domain := c.Query("domain")
+		if domain == "" && len(domainList) > 0 {
+			domain = domainList[0]
+		}
+		if !isAllowedDomain(domain) {
+			c.JSON(400, gin.H{
+				"error": "Invalid domain",
+			})
+			return
+		}
 		tmp := RandStringRunes(8)
 		c.JSON(200, gin.H{
 			"random":  tmp,
-			"address": tmp + "@" + Domain,
-			"domain":  "@" + Domain,
+			"address": tmp + "@" + domain,
+			"domain":  "@" + domain,
 		})
 	})
 	httpsrv.GET("/getMailList/:randomString", func(c *gin.Context) {
